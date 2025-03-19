@@ -1,33 +1,27 @@
 import { Link } from "expo-router";
-import { Text, TouchableWithoutFeedback, View, Keyboard } from "react-native";
-import React, { useEffect, useState } from "react";
-import { useCityStore } from "../../lib/store/cityStore";
-import SearchCity from "../../component/SearchCity";
+import {
+  Text,
+  TouchableWithoutFeedback,
+  View,
+  Keyboard,
+  ActivityIndicator,
+  ImageBackground,
+  StyleSheet,
+} from "react-native";
+import { useEffect, useState } from "react";
+import PrayerTime from "../../component/PrayerTime";
 import getPrayerToday from "../../lib/api/getPrayer";
-
-interface PrayerSchedule {
-  ashar: string;
-  date: string;
-  dhuha: string;
-  dzuhur: string;
-  imsak: string;
-  isya: string;
-  maghrib: string;
-  subuh: string;
-  tanggal: string;
-  terbit: string;
-}
-
-interface PrayerResponse {
-  daerah: string;
-  id: number;
-  lokasi: string;
-  jadwal: PrayerSchedule;
-}
+import { useCityStore } from "../../lib/store/cityStore";
+import { PrayerResponse } from "../../lib/types/schedule";
+import { Ionicons } from "@expo/vector-icons";
+import Card from "../../component/Card";
+import SearchCity from "../../component/SearchCity";
+import Header from "../../component/Header";
 
 export default function Home() {
-  const { selectedCity, removeCity } = useCityStore();
+  const { selectedCity } = useCityStore();
   const [prayerTimes, setPrayerTimes] = useState<PrayerResponse | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     async function fetchPrayerTimes() {
@@ -35,77 +29,58 @@ export default function Home() {
         setPrayerTimes(null);
         return;
       }
-      
-      const data = await getPrayerToday();
-      console.log(data);
 
-      if (data) {
-        setPrayerTimes(data);
+      setIsLoading(true);
+
+      try {
+        const data = await getPrayerToday();
+        console.log(data);
+
+        if (data) {
+          setPrayerTimes(data);
+        }
+      } catch (error) {
+        console.error("Error fetching prayer times:", error);
+      } finally {
+        setIsLoading(false);
       }
     }
 
     fetchPrayerTimes();
   }, [selectedCity]);
 
-  const handleRemoveCity = () => {
-    removeCity();
-    setPrayerTimes(null); // 🔥 Reset prayerTimes saat lokasi dihapus
-  };
-
   return (
     <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
-      <View style={{ flex: 1, padding: 16 }}>
-        <Text style={{ fontSize: 20, fontWeight: "bold" }}>Pilih Lokasi</Text>
-
-        {selectedCity ? (
-          <>
-            <Text style={{ fontSize: 16, marginTop: 10 }}>
-              Lokasi yang dipilih: {selectedCity.lokasi} (ID: {selectedCity.id})
-            </Text>
-            <Text
-              style={{ fontSize: 18, color: "#007AFF", marginTop: 8 }}
-              onPress={handleRemoveCity}
-            >
-              Hapus lokasi
-            </Text>
-          </>
-        ) : (
-          <SearchCity />
-        )}
-
-        <View>
-          <Text style={{ fontSize: 16, marginTop: 10 }}>
-            {selectedCity?.lokasi}
-          </Text>
-
-          {selectedCity && prayerTimes && (
-            <>
-              <Text style={{ fontSize: 16, marginTop: 10 }}>
-                Sholat Subuh: {prayerTimes.jadwal.subuh}
-              </Text>
-              <Text style={{ fontSize: 16, marginTop: 10 }}>
-                Sholat Dzuhur: {prayerTimes.jadwal.dzuhur}
-              </Text>
-              <Text style={{ fontSize: 16, marginTop: 10 }}>
-                Sholat Ashar: {prayerTimes.jadwal.ashar}
-              </Text>
-              <Text style={{ fontSize: 16, marginTop: 10 }}>
-                Sholat Maghrib: {prayerTimes.jadwal.maghrib}
-              </Text>
-              <Text style={{ fontSize: 16, marginTop: 10 }}>
-                Sholat Isya: {prayerTimes.jadwal.isya}
-              </Text>
-            </>
-          )}
-        </View>
-
-        <Link
-          href="/setting"
-          style={{ fontSize: 18, color: "#007AFF", marginTop: 20 }}
+      <View style={{ flex: 1 }}>
+        <ImageBackground
+          source={{ uri: "https://picsum.photos/200/600" }}
+          style={{ width: "100%", height: 300 }}
+          resizeMode="cover"
         >
-          Ke Setting
-        </Link>
+          <Header prayerTimes={prayerTimes?.jadwal || null} />
+        </ImageBackground>
+        <View style={styles.content}>
+          <Card location={selectedCity?.lokasi}>
+            {isLoading ? (
+              <ActivityIndicator size="large" color="#007AFF" />
+            ) : prayerTimes ? (
+              <PrayerTime jadwal={prayerTimes.jadwal} />
+            ) : (
+              <SearchCity />
+            )}
+          </Card>
+        </View>
       </View>
     </TouchableWithoutFeedback>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  content: {
+    padding: 16,
+    marginTop: -48,
+  },
+});

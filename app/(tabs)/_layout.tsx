@@ -11,7 +11,10 @@ export default function TabLayout() {
         options={{
           title: "Home",
           tabBarActiveTintColor: "tomato",
-          tabBarIcon: ({ color }) => <TabBarIcon name="home" color={color} />,
+          headerShown: false,
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon name={focused ? "home-sharp" : "home-outline"} color={color} />
+          ),
         }}
       />
       <Tabs.Screen
@@ -19,8 +22,9 @@ export default function TabLayout() {
         options={{
           title: "Setting",
           tabBarActiveTintColor: "tomato",
-          tabBarIcon: ({ color }) => (
-            <TabBarIcon name="settings" color={color} />
+          headerShown: false,
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon name={focused ? "settings-sharp" : "settings-outline"} color={color} />
           ),
         }}
       />

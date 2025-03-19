@@ -6,9 +6,12 @@ import {
   TouchableOpacity,
   View,
   Keyboard,
+  StyleSheet,
+  ScrollView,
 } from "react-native";
 import { useCityStore } from "../lib/store/cityStore";
 import getAllCity from "../lib/api/getCity";
+import { Ionicons } from "@expo/vector-icons";
 
 interface City {
   id: number;
@@ -53,56 +56,34 @@ export default function SearchCity() {
 
   return (
     <View style={{ position: "relative", zIndex: 2 }}>
-      <TextInput
-        style={{
-          height: 50,
-          borderWidth: 1,
-          borderColor: "#ddd",
-          borderRadius: 8,
-          paddingHorizontal: 16,
-          fontSize: 16,
-          marginVertical: 12,
-          backgroundColor: "white",
-        }}
-        placeholder="Cari Lokasi..."
-        value={searchQuery}
-        onChangeText={handleSearch}
-        onFocus={() => setShowDropdown(true)}
-      />
+      <View style={styles.input}>
+        <Ionicons name="search" size={32} color="#60a5fa" />
+        <TextInput
+          placeholder="Search location"
+          style={{ flex: 1 }}
+          value={searchQuery}
+          onChangeText={handleSearch}
+          onFocus={() => setShowDropdown(true)}
+        />
+      </View>
 
       {showDropdown && (
-        <View
-          style={{
-            position: "absolute",
-            top: 62,
-            left: 0,
-            right: 0,
-            backgroundColor: "white",
-            borderRadius: 8,
-            borderWidth: 1,
-            borderColor: "#ddd",
-            maxHeight: 200,
-            overflow: "hidden",
-            elevation: 3,
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.2,
-            shadowRadius: 4,
-          }}
-        >
+        <View style={styles.dropdown}>
           <FlatList
             data={filteredCities}
             keyExtractor={(item) => item.id.toString()}
+            keyboardShouldPersistTaps="handled"
+            nestedScrollEnabled={true}
+            contentContainerStyle={{ flexGrow: 1 }}
+            style={{ maxHeight: 240 }} // Pastikan tinggi cukup
             renderItem={({ item }) => (
               <TouchableOpacity
                 onPress={() => handleSelectCity(item)}
-                style={{
-                  padding: 12,
-                  borderBottomWidth: 1,
-                  borderBottomColor: "#E5E5E5",
-                }}
+                style={styles.selector}
               >
-                <Text>{item.lokasi}</Text>
+                <Text style={{ textTransform: "capitalize" }}>
+                  {item.lokasi}
+                </Text>
               </TouchableOpacity>
             )}
           />
@@ -111,3 +92,29 @@ export default function SearchCity() {
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  selector: {
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#DDDDDD",
+  },
+  dropdown: {
+    position: "absolute",
+    top: 62,
+    left: 0,
+    right: 0,
+    backgroundColor: "white",
+    borderRadius: 8,
+    maxHeight: 240, // Pastikan cukup besar agar bisa di-scroll
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+  },
+  input: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+});
